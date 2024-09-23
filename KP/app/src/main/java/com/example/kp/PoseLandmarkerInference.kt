@@ -9,11 +9,15 @@ import androidx.annotation.VisibleForTesting
 import androidx.camera.core.ImageProxy
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.framework.image.MPImage
+import com.google.mediapipe.tasks.components.containers.NormalizedLandmark
 import com.google.mediapipe.tasks.core.BaseOptions
 import com.google.mediapipe.tasks.core.Delegate
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarker
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
+import kotlin.math.acos
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 class PoseLandmarkerInference(
     var minPoseDetectionConfidence: Float = DEFAULT_POSE_DETECTION_CONFIDENCE,
@@ -156,6 +160,8 @@ class PoseLandmarkerInference(
         val finishTimeMs = SystemClock.uptimeMillis()
         val inferenceTime = finishTimeMs - result.timestampMs()
 
+        processPoseLandmarkerResult(result)
+
         PoseLandmarkerInferenceListener?.onResults(
             ResultBundle(
                 listOf(result),
@@ -166,6 +172,59 @@ class PoseLandmarkerInference(
         )
     }
 
+    fun calculateAngleBetweenPoints(
+        hip: NormalizedLandmark,
+        knee: NormalizedLandmark,
+        ankle: NormalizedLandmark
+    ): Double {
+
+        val vectorHipToKnee = floatArrayOf(
+            knee.x() - hip.x(),
+            knee.y() - hip.y(),
+            knee.z() - hip.z()
+        )
+        val vectorKneeToAnkle = floatArrayOf(
+            ankle.x() - knee.x(),
+            ankle.y() - knee.y(),
+            ankle.z() - knee.z()
+        )
+
+        val dotProduct = (vectorHipToKnee[0] * vectorKneeToAnkle[0]) +
+                (vectorHipToKnee[1] * vectorKneeToAnkle[1]) +
+                (vectorHipToKnee[2] * vectorKneeToAnkle[2])
+
+        val magnitudeHipToKnee = sqrt(
+            vectorHipToKnee[0].pow(2) + vectorHipToKnee[1].pow(2) + vectorHipToKnee[2].pow(2)
+        )
+        val magnitudeKneeToAnkle = sqrt(
+            vectorKneeToAnkle[0].pow(2) + vectorKneeToAnkle[1].pow(2) + vectorKneeToAnkle[2].pow(2)
+        )
+
+        val cosTheta = dotProduct / (magnitudeHipToKnee * magnitudeKneeToAnkle)
+
+        return Math.toDegrees(acos(cosTheta).toDouble())
+    }
+
+    fun processPoseLandmarkerResult(result: PoseLandmarkerResult) {
+
+        val poseIndex = 0
+        val landmarks = result.landmarks()[poseIndex]
+
+        val rightHip = landmarks[23]  // Hip kanan
+        val rightKnee = landmarks[25] // Lutut kanan
+        val rightAnkle = landmarks[27] // Pergelangan kaki kanan
+
+        val leftHip = landmarks[24]   // Hip kiri
+        val leftKnee = landmarks[26]  // Lutut kiri
+        val leftAnkle = landmarks[28] // Pergelangan kaki kiri
+
+        val rightKneeAngle = calculateAngleBetweenPoints(rightHip, rightKnee, rightAnkle)
+        val leftKneeAngle = calculateAngleBetweenPoints(leftHip, leftKnee, leftAnkle)
+
+        Log.d("KneeAngle", "Sudut Lutut Kanan: $rightKneeAngle derajat")
+        Log.d("KneeAngle", "Sudut Lutut Kiri: $leftKneeAngle derajat")
+    }
+
     private fun returnLivestreamError(error: RuntimeException) {
         PoseLandmarkerInferenceListener?.onError(
             error.message ?: "An unknown error has occurred"
@@ -173,6 +232,7 @@ class PoseLandmarkerInference(
     }
 
     companion object {
+
         const val TAG = "PoseLandmarkerInference"
 
         const val DELEGATE_CPU = 0
