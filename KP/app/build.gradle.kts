@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.example.kp"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.kp"
@@ -15,6 +15,10 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildFeatures {
+        viewBinding = true
     }
 
     buildTypes {
@@ -46,6 +50,9 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    implementation("androidx.activity:activity-ktx:latest.release")
+    implementation("androidx.fragment:fragment-ktx:1.5.4")
+    implementation ("androidx.appcompat:appcompat:1.5.1")
 
     implementation("com.google.mediapipe:tasks-vision:latest.release")
 

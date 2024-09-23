@@ -1,6 +1,5 @@
 package com.example.kp
 
-import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.activity.enableEdgeToEdge
@@ -18,11 +17,15 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
-        val btnStart: Button = findViewById(R.id.start)
-        btnStart.setOnClickListener {
-            val intent = Intent(this, CameraActivity::class.java)
-            startActivity(intent)
+        findViewById<Button>(R.id.button_to_camera).setOnClickListener {
+            openCameraFragment()
         }
+    }
+    private fun openCameraFragment() {
+        val cameraFragment = CameraFragment()
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.main, cameraFragment) // Ganti R.id.main dengan ID layout yang kamu gunakan
+            .addToBackStack(null) // Tambahkan ke back stack jika ingin kembali
+            .commit()
     }
 }
