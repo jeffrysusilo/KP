@@ -5,14 +5,12 @@
     android:layout_height="match_parent"
     tools:context=".CameraFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-
     <androidx.camera.view.PreviewView
         android:id="@+id/viewFinder"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <com.google.mediapipe.examples.poselandmarker.OverlayView
+    <com.example.kp.OutputLine
         android:id="@+id/overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

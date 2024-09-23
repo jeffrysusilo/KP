@@ -195,7 +195,7 @@ class CameraFragment : Fragment(), PoseLandmarkerInference.LandmarkerListener {
     ) {
         activity?.runOnUiThread {
             if (_fragmentCameraBinding != null) {
-                fragmentCameraBinding.overlay.setResults(
+                fragmentCameraBinding.overlay.setOutput(
                     resultBundle.results.first(),
                     resultBundle.inputImageHeight,
                     resultBundle.inputImageWidth,
